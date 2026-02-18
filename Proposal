@@ -29,7 +29,7 @@ We will treat The Binding of Isaac itself as the simulation environment and inte
 ### Project Plan / Timeline
 
 ### Milestone 1: early functionality (e.g., data preprocessing, basic model) (March 1)
-Task 1: Turn Issac into an AI environment
+#### Task 1: Turn Issac into an AI environment
 Connect Lua to Python such that it sends state to and receives action from python.
 Convert raw game data into tensor to make it easier for the RL model to process.
 
@@ -40,7 +40,7 @@ Train model in one room.
 Evaluate room clear rate, damage taken and survival time, etc.
 
 ### Milestone 2: complete system with evaluation, visualization, and optional stretch features (March 29)
-Task 3: Build Decision Model
+#### Task 3: Build Decision Model
 Represent the floor as a graph with Nodes being rooms and edges being doors. Implement A* search to find the shortest path to the boss or a new room.
 Add heuristics to find a safer room when HP is low. (optional?)
 
