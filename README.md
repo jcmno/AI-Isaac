@@ -11,3 +11,8 @@ Purpose: To develop an autonomous agent that is capable of navigating and defeat
 2. Install Repentogon 
 - Click [here](https://youtu.be/hF4ngfDn364?si=qrt4d8w2WkdSY-hs) for a step-by-step walkthrough
 - Add '--luadebug' to your Steam launch options
+- Launch the game through Steam 
+3. Mod Folders 
+- Locate the game files (usually located in the x86 Program Files folder)
+- Open the 'mods' folder 
+- Copy and paste the **PythonBridge** folder from this repo into the 'mods' folder 
