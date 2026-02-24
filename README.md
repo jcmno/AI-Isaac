@@ -1,10 +1,9 @@
-# Binding of Isaac - AI Mod
+# The Binding of Isaac - AI Mod
 Purpose: To develop an autonomous agent that is capable of navigating and defeating the dungeons in The Binding of Isaac. The agent should be able to address real-time combat, and also high-level strategic planning.
 
 ## Requirements
 - The Binding of Isaac: Repentence (Steam Version)
 - Repentogon (Mod Extension)
-
 
 ## Set-up Instructions 
 1. Install The Binding of Isaac: Repentence 
@@ -16,3 +15,10 @@ Purpose: To develop an autonomous agent that is capable of navigating and defeat
 - Locate the game files (usually located in the x86 Program Files folder)
 - Open the 'mods' folder 
 - Copy and paste the **PythonBridge** folder from this repo into the 'mods' folder 
+
+## Running the Mod
+1. Run the "Isaac_test_server.py" file on the terminal. The command prompt should say "Waiting for Isaac...".
+2. Launch The Binding of Isaac 
+3. Start a game
+4. Once loaded in the game, "Link established!" message will pop up in Python and coordinates should start moving 
+5. In the command prompt, you can type "spawn", "hurt", "speed", "tp" to change Isaac's state in the game. 
