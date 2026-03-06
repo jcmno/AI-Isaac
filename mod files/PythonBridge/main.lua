@@ -1,61 +1,78 @@
-local myMod = RegisterMod("Python AI Bridge", 1)
+local myMod = RegisterMod("Isaac Relative Sensing", 1)
 local socket = require("socket")
 
 local client = nil
+local shoot_dir = Vector(0, 0) 
 
--- This function runs every single frame (60 times per second)
 function myMod:OnUpdate()
     -- 1. INITIALIZE CONNECTION
     if not client then
         client = socket.tcp()
-        client:settimeout(0) -- Critical: prevents game from freezing
+        client:settimeout(0) 
         local success, err = client:connect("127.0.0.1", 5005)
-        if success then 
-            print("Connected to Python Brain!") 
-        end
+        if success then print("LUA: Connected to Python Brain!") end
     end
 
-    -- 2. THE EYES: Increased frequency to % 2 for smooth coordinate tracking
+    -- 2. THE EYES (Data Collection)
     if Game():GetFrameCount() % 2 == 0 and client then
         local player = Isaac.GetPlayer(0)
-        -- Start with Player position
-        local out = string.format("P:%.0f,%.0f", player.Position.X, player.Position.Y)
+        local room = Game():GetRoom() -- <--- FIXED: Define room here
+        local hp = player:GetHearts() + player:GetSoulHearts()
+        
+        -- Start the string with Player and HP
+        local out = string.format("P:%.0f,%.0f|H:%d", player.Position.X, player.Position.Y, hp)
     
-        -- Loop through everything in the room to find enemies
-        for _, ent in pairs(Isaac.GetRoomEntities()) do
-            if ent:IsVulnerableEnemy() then
-                out = out .. string.format("|E:%.0f,%.0f", ent.Position.X, ent.Position.Y)
+        -- SENSE DOORS
+        for i = 0, 7 do
+            local door = room:GetDoor(i)
+            if door then
+                local status = door:IsOpen() and "OPEN" or "CLOSED"
+                out = out .. string.format("|D:%d:%s:%.0f,%.0f", i, status, door.Position.X, door.Position.Y)
             end
         end
 
-        -- Wrap in pcall so the game doesn't crash if Python is closed
+        -- SENSE ENEMIES
+        for _, ent in pairs(Isaac.GetRoomEntities()) do
+            if ent:IsVulnerableEnemy() then
+                out = out .. string.format("|E:%d.%d:%.0f,%.0f", ent.Type, ent.Variant, ent.Position.X, ent.Position.Y)
+            end
+        end
+
+        -- Send to Python
         pcall(function() client:send(out .. "\n") end)
     end
 
-    -- 3. THE HANDS: Check if Python sent a command
+    -- 3. THE HANDS (Action Execution)
     local data, err = client:receive("*l")
     if data then
         local player = Isaac.GetPlayer(0)
-        print("LUA RECEIVED: " .. tostring(data))
-        -- The "spawn" command gives Isaac an item    
-        if data == "spawn" then
-            local pos = Isaac.GetFreeNearPosition(player.Position, 40)
-            Isaac.Spawn(EntityType.ENTITY_PICKUP, PickupVariant.PICKUP_COLLECTIBLE, 0, pos, Vector(0,0), nil)
+        if data:sub(1,5) == "MOVE:" then
+            shoot_dir = Vector(0, 0)
+            local move = data:sub(6)
+            local speed = 5
+            if move == "UP" then player.Velocity = Vector(0, -speed)
+            elseif move == "DOWN" then player.Velocity = Vector(0, speed)
+            elseif move == "LEFT" then player.Velocity = Vector(-speed, 0)
+            elseif move == "RIGHT" then player.Velocity = Vector(speed, 0)
+            elseif move == "STAY" then player.Velocity = player.Velocity * 0.8 -- Decelerate smoothly
+            end
         
-        -- The "hurt" command damages Isaac    
-        elseif data == "hurt" then
-            player:TakeDamage(1, 0, EntityRef(player), 0)
-        -- The "speed" command increases Isaacs movement speed
-        elseif data == "speed" then
-            player.MoveSpeed = player.MoveSpeed + 0.2
-        -- The "tp" command teleports Isaac to the center of the room    
-        elseif data == "tp" then
-            player.Position = Vector(320, 280)
-            print("Action: Teleported to center")
+        elseif data:sub(1,6) == "SHOOT:" then
+            local s = data:sub(7)
+            if s == "UP" then shoot_dir = Vector(0, -1)
+            elseif s == "DOWN" then shoot_dir = Vector(0, 1)
+            elseif s == "LEFT" then shoot_dir = Vector(-1, 0)
+            elseif s == "RIGHT" then shoot_dir = Vector(1, 0)
+            else shoot_dir = Vector(0, 0) end
         end
     end
 end
 
-myMod:AddCallback(ModCallbacks.MC_POST_UPDATE, myMod.OnUpdate)
+-- Force Isaac to shoot based on shoot_dir
+myMod:AddCallback(ModCallbacks.MC_POST_PLAYER_RENDER, function(_, player)
+    if shoot_dir:Length() > 0 then
+        player:FireTear(player.Position, shoot_dir * 10, false, true, false)
+    end
+end)
 
-print("Python AI Bridge: Mod Loaded!")
+myMod:AddCallback(ModCallbacks.MC_POST_UPDATE, myMod.OnUpdate)
