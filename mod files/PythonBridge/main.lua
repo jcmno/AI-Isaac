@@ -14,15 +14,29 @@ function myMod:OnUpdate()
     end
 
     -- 2. THE EYES (Data Collection)
-    if Game():GetFrameCount() % 2 == 0 and client then
+    if client then
         local player = Isaac.GetPlayer(0)
-        local room = Game():GetRoom() -- <--- FIXED: Define room here
+        local game = Game()
+        local room = game:GetRoom()
+        local level = game:GetLevel()
+        local room_desc = level:GetCurrentRoomDesc()
         local hp = player:GetHearts() + player:GetSoulHearts()
         
-        -- Start the string with Player and HP
-        local out = string.format("P:%.0f,%.0f|H:%d", player.Position.X, player.Position.Y, hp)
+        -- Packet format:
+        -- P:x,y          -> player position
+        -- H:hp           -> total current health
+        -- R:stage:room   -> coarse room identity for transition-aware logic in Python
+        local out = string.format(
+            "P:%.0f,%.0f|H:%d|R:%d:%d",
+            player.Position.X,
+            player.Position.Y,
+            hp,
+            level:GetStage(),
+            room_desc.SafeGridIndex
+        )
     
-        -- SENSE DOORS
+        -- D:slot:status:x,y  (status is OPEN/CLOSED)
+        -- Slot id is important so Python can avoid immediately taking the opposite door.
         for i = 0, 7 do
             local door = room:GetDoor(i)
             if door then
@@ -31,14 +45,15 @@ function myMod:OnUpdate()
             end
         end
 
-        -- SENSE ENEMIES
+        -- E:type.variant:x,y
+        -- We only include vulnerable enemies so the brain reasons about active threats.
         for _, ent in pairs(Isaac.GetRoomEntities()) do
             if ent:IsVulnerableEnemy() then
                 out = out .. string.format("|E:%d.%d:%.0f,%.0f", ent.Type, ent.Variant, ent.Position.X, ent.Position.Y)
             end
         end
 
-        -- Send to Python
+        -- pcall keeps the game loop alive if the socket hiccups.
         pcall(function() client:send(out .. "\n") end)
     end
 
