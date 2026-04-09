@@ -18,7 +18,7 @@ C:\Program Files (x86)\Steam\steamapps\common\The Binding of Isaac Rebirth\mods
 ```
 - Copy and paste the **PythonBridge** folder located in the mod files folder of this repository into the 'mods' folder 
 
-## Running the Mod
+## Run the Mod
 1. Locate the "isaac-dqn" folder using the terminal and install dependencies 
 ```powershell
 cd "c:\Users\eulun\Desktop\310 Project\AI-Isaac\isaac-dqn"
