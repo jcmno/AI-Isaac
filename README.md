@@ -6,26 +6,33 @@ Purpose: Build a working game-to-Python interface and a basic reinforcement-lear
 - Repentogon (Mod Extension)
 
 ## Set-up Instructions 
-1. Install The Binding of Isaac: Repentence 
+1. Install The Binding of Isaac: Repentence through Steam
 2. Install Repentogon 
 - Click [here](https://youtu.be/hF4ngfDn364?si=qrt4d8w2WkdSY-hs) for a step-by-step walkthrough
 - Add '--luadebug' to your Steam launch options
 - Launch the game through Steam 
-3. Mod Folders 
-- Locate the game files (usually located in the x86 Program Files folder)
-- Open the 'mods' folder 
-- Copy and paste the **PythonBridge** folder from this repo into the 'mods' folder 
+3. Copy the mod into the game
+- Locate the game files (usually located in the Program Files x86 folder of your Local Disk)
+```powershell
+C:\Program Files (x86)\Steam\steamapps\common\The Binding of Isaac Rebirth\mods
+```
+- Copy and paste the **PythonBridge** folder located in the mod files folder of this repository into the 'mods' folder 
 
 ## Running the Mod
-1. Run the "Isaac_test_server.py" file on the terminal. The command prompt should say "Waiting for Isaac...".
-2. Launch The Binding of Isaac 
-3. Start a game
-4. Once loaded in the game, "Link established!" appears in Python and live data updates begin.
-5. The loop runs continuously: Lua sends room/player/enemy/door data, Python chooses an action, and Lua executes it.
-6. Manual commands in Python: "save" to persist the Q-table, "exit" to stop safely.
+1. Locate the "isaac-dqn" folder using the terminal and install dependencies 
+```powershell
+cd "c:\Users\eulun\Desktop\310 Project\AI-Isaac\isaac-dqn"
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+py -m pip install -r requirements.txt
+```
+2. Run the mod in the terminal. 
+```powershell
+cd "c:\Users\eulun\Desktop\310 Project\AI-Isaac\isaac-dqn"
+py -m src.train_server
+```
+3. Launch The Binding of Isaac 
+4. Start a game
+5. Once loaded in the game, "Link established!" appears in Python and live data updates begin.
 
-## Current milestone behavior
-- Demonstrates bidirectional socket communication between Isaac (Lua) and Python.
-- Demonstrates a per-tick RL decision loop with Q-table updates.
-- Includes simple anti-backtracking door navigation to reduce empty-room ping-pong.
-- Navigation policy is still early-stage and not fully trained.
+
